@@ -2,7 +2,7 @@ $ErrorActionPreference='Stop'
 function Get-CoreDependency {
  [pscustomobject]@{
   Url='https://github.com/hifihedgehog/HIDMaestro/releases/download/v1.10.0/HIDMaestro-v1.10.0.zip'
-  ArchiveHash='24FAB064FF179917FD4FE6CCD83571783ADFA3CA976B7AD3C3E48A891790E216160'
+  ArchiveHash='24FAB064FF179917FD4FE6CCD83571783ADFA3CA976B7AD3C3E48A891790E216'
   CoreHash='DA0BE0B400AE095CA694AADB94CFF390282B43EB318E6349B0BC2358222A6A94'
  }
 }
@@ -25,6 +25,7 @@ function Receive-Dependency([string]$Url,[string]$Destination) {
 }
 function Ensure-PinnedDependency([string]$PackageRoot) {
  $spec=Get-CoreDependency
+ if($spec.ArchiveHash-notmatch'^[A-Fa-f0-9]{64}$'-or$spec.CoreHash-notmatch'^[A-Fa-f0-9]{64}$'){throw 'Dependency SHA256 pins must contain exactly 64 hex characters.'}
  $app=Join-Path $PackageRoot 'app';Assert-SafeDirectory $app
  $core=Join-Path $app 'HIDMaestro.Core.dll'
  if((Test-Path -LiteralPath $core)-and((Get-Item -LiteralPath $core -Force).Attributes-band[IO.FileAttributes]::ReparsePoint)){throw 'Dependency must not be a link.'}

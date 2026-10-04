@@ -1,22 +1,27 @@
 param([ValidateSet('win-x64','win-arm64')][string]$Runtime='win-x64',[string]$DotNet)
 $ErrorActionPreference='Stop'
 $root=Split-Path -Parent $PSScriptRoot
+. (Join-Path $root 'scripts\Dependencies.ps1')
+$dependency=Get-CoreDependency
 Push-Location -LiteralPath $root
 try {
 $cache=Join-Path $root '.cache'
 New-Item -ItemType Directory -Path $cache -Force|Out-Null
 [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12
 function Download-Checked([string]$Url,[string]$Path,[string]$Hash,[string]$Algorithm='SHA256') {
+ $length=if($Algorithm-eq'SHA512'){128}else{64}
+ if($Hash-notmatch ('^[A-Fa-f0-9]{'+$length+'}$')){throw 'Invalid dependency checksum format.'}
  if((Test-Path -LiteralPath $Path)-and(Get-FileHash -LiteralPath $Path -Algorithm $Algorithm).Hash-eq$Hash){return}
  $client=New-Object Net.WebClient
  try{$client.DownloadFile($Url,$Path)}finally{$client.Dispose()}
- if((Get-FileHash -LiteralPath $Path -Algorithm $Algorithm).Hash-ne$Hash){Remove-Item -LiteralPath $Path;throw 'Dependency checksum mismatch.'}
+ $actual=(Get-FileHash -LiteralPath $Path -Algorithm $Algorithm).Hash
+ if($actual-ne$Hash){Remove-Item -LiteralPath $Path;throw ('Dependency checksum mismatch for '+[IO.Path]::GetFileName($Path)+': expected '+$Hash+', got '+$actual)}
 }
 $vendor=Join-Path $root 'vendor\HIDMaestro.Core.dll'
-$coreHash='DA0BE0B400AE095CA694AADB94CFF390282B43EB318E6349B0BC2358222A6A94'
+$coreHash=$dependency.CoreHash
 if(-not(Test-Path -LiteralPath $vendor)) {
  $zip=Join-Path $cache 'HIDMaestro-v1.10.0.zip'
- Download-Checked 'https://github.com/hifihedgehog/HIDMaestro/releases/download/v1.10.0/HIDMaestro-v1.10.0.zip' $zip '24FAB064FF179917FD4FE6CCD83571783ADFA3CA976B7AD3C3E48A891790E216160'
+ Download-Checked $dependency.Url $zip $dependency.ArchiveHash
  $expanded=Join-Path $cache 'hidmaestro'
  Expand-Archive -LiteralPath $zip -DestinationPath $expanded -Force
  $candidate=@(Get-ChildItem -LiteralPath $expanded -Recurse -Filter HIDMaestro.Core.dll|Where-Object{(Get-FileHash -LiteralPath $_.FullName).Hash-eq$coreHash})|Select-Object -First 1

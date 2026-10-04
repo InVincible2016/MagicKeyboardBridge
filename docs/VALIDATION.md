@@ -11,7 +11,7 @@ Development state as of 2026-10-03. No public release is certified by this file.
 | Portable mapper / settings / native helper / payload tests | 565 checks plus 517 predecessor mapping checks passed locally; includes both driver catalogs and heartbeat sharing contention |
 | Windows PowerShell 5.1 parsing and ownership tests | 25 checks passed locally; fake tasks and temporary directories only |
 | Self-contained x64 and ARM64 package builds | Both cross-builds passed locally; x64 standalone self-test passed |
-| Dependency bootstrap with downloads mocked | 14 checks passed, covering cache reuse, corrupt downloads, independent DLL hash and archive path traversal |
+| Dependency bootstrap with downloads mocked | 17 checks passed, covering cache reuse, corrupt downloads, independent DLL hash and archive path traversal |
 | Installer orchestration with Windows operations mocked | 35 scenarios / 119 checks passed under Windows PowerShell 5.1; includes takeover failure, recovery failure, missing startup tasks, uninstall and stale launcher results |
 | Portable package clean install | Pending |
 | Portable package physical input and restricted IPC | Pending |

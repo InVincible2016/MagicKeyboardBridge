@@ -4,6 +4,8 @@ $ErrorActionPreference='Stop'
 . (Join-Path $Root 'scripts\Dependencies.ps1')
 $spec=Get-CoreDependency;$checks=0;$downloads=0
 function Assert([bool]$Value,[string]$Message){$script:checks++;if(-not$Value){throw $Message}}
+Assert ($spec.ArchiveHash-match'^[A-Fa-f0-9]{64}$') 'Production archive pin must be a valid SHA256.'
+Assert ($spec.CoreHash-match'^[A-Fa-f0-9]{64}$') 'Production DLL pin must be a valid SHA256.'
 $fixture=Join-Path $Root ('.cache\dependency-tests\'+[guid]::NewGuid().ToString('N'))
 $package=Join-Path $fixture 'package';$app=Join-Path $package 'app';$cache=Join-Path $package '.download-cache'
 New-Item -ItemType Directory -Path $app,$cache -Force|Out-Null
@@ -31,6 +33,10 @@ try {
  try{[IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip,$vendor,'../../HIDMaestro.Core.dll',[IO.Compression.CompressionLevel]::NoCompression)|Out-Null}finally{$zip.Dispose()}
  $script:testSpec=[pscustomobject]@{Url=$spec.Url;CoreHash=$spec.CoreHash;ArchiveHash=(Get-FileHash -LiteralPath $sourceZip).Hash}
  function Get-CoreDependency {$script:testSpec}
+ $script:testSpec.ArchiveHash+='160'
+ $rejected=$false;try{Ensure-PinnedDependency $package}catch{$rejected=$true}
+ Assert ($rejected-and$downloads-eq 0) 'Malformed pin must be rejected before any download or cached DLL use.'
+ $script:testSpec.ArchiveHash=(Get-FileHash -LiteralPath $sourceZip).Hash
  $script:downloadSource=$sourceZip
  Remove-Item -LiteralPath $core
  Ensure-PinnedDependency $package
