@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+vendor/*
+!vendor/README.md
+dist/
+.cache/
+*.pfx
+*.p12
+*.cer
+*.log
+*-result.json
+local-testing/

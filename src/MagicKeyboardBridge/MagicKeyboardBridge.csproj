@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>disable</Nullable><AssemblyName>MagicKeyboardBridge</AssemblyName><Version>0.4.0</Version><DebugType>embedded</DebugType><Deterministic>true</Deterministic><PathMap>$(MSBuildProjectDirectory)=/_/src/MagicKeyboardBridge</PathMap><NoWarn>$(NoWarn);CA1416</NoWarn></PropertyGroup>
+ <ItemGroup><Content Include="../../vendor/HIDMaestro.Core.dll" Link="HIDMaestro.Core.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" /></ItemGroup>
+</Project>

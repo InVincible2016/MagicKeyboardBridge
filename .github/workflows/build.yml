@@ -1,0 +1,43 @@
+name: Build and offline checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      virtual_driver_gate:
+        description: Run driver installation/input/cleanup test on a fresh disposable Windows runner
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [win-x64, win-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run offline regressions
+        shell: powershell
+        run: ./tools/Build.ps1 -Runtime ${{ matrix.runtime }}
+      - name: Standalone executable check
+        if: matrix.runtime == 'win-x64'
+        shell: powershell
+        run: |
+          ./dist/MagicKeyboardBridge-win-x64/app/MagicKeyboardBridge.exe self-test
+          if ($LASTEXITCODE -ne 0) { throw 'Standalone self-test failed.' }
+      # Public binary uploads remain disabled until the live validation
+      # gates in docs/VALIDATION.md are satisfied.
+  virtual-driver:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.virtual_driver_gate }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build test package
+        shell: powershell
+        run: ./tools/Build.ps1 -Runtime win-x64
+      - name: Test fresh virtual driver with normal boot security
+        shell: powershell
+        run: ./tools/Test-VirtualDriver.ps1 -PackageRoot ./dist/MagicKeyboardBridge-win-x64 -DisposableVM
