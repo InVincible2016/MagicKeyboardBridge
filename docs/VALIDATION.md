@@ -13,6 +13,8 @@ Development state as of 2026-10-03. No public release is certified by this file.
 | Self-contained x64 and ARM64 package builds | Both cross-builds passed locally; x64 standalone self-test passed |
 | Dependency bootstrap with downloads mocked | 17 checks passed, covering cache reuse, corrupt downloads, independent DLL hash and archive path traversal |
 | Installer orchestration with Windows operations mocked | 35 scenarios / 119 checks passed under Windows PowerShell 5.1; includes takeover failure, recovery failure, missing startup tasks, uninstall and stale launcher results |
+| GitHub clean-checkout build and offline checks | x64 and ARM64 builds passed on Windows Server 2025; x64 standalone self-test passed. [Run](https://github.com/InVincible2016/MagicKeyboardBridge/actions/runs/37171230692), source commit f4916c6. |
+| Hosted virtual driver gate | Blocked at preflight because the hosted Windows runner had test signing enabled. No driver creation or input test ran. [Run](https://github.com/InVincible2016/MagicKeyboardBridge/actions/runs/37171282428). |
 | Portable package clean install | Pending |
 | Portable package physical input and restricted IPC | Pending |
 | Portable package reboot, sleep, USB replug | Pending |
@@ -34,5 +36,7 @@ Use a disposable Windows installation with test signing already OFF and a mouse/
 - Test cold startup/restart, sleep/resume and rapid USB disconnect/reconnect with keys held. Check no keys remain pressed.
 - Launch each claimed game with normal security settings and verify mapped controls in actual play. Record that game's build and result.
 - Confirm the public ZIP excludes the upstream aggregate DLL/signing tools and includes .NET license/notices; first installation fetches the pinned aggregate directly from its publisher. Never include a private key, local device identity, user path or raw diagnostic log.
+
+The hosted-runner failure does not establish normal-mode driver compatibility or incompatibility. A disposable Windows environment with test signing already OFF is still required; changing a BCD value without rebooting would not satisfy that condition. GitHub's [Windows image template](https://github.com/actions/runner-images/blob/main/images/windows/templates/build.windows-2022.pkr.hcl) also explicitly enables test signing, so switching labels is not a reliable substitute.
 
 A failure in any required gate keeps the release a development preview. A compilation or a mocked test must not be reported as a driver installation test.
